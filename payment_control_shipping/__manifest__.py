@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Ödeme Kontrollü Sevkiyat',
-    'version': '15.0.3.2.0',
+    'version': '15.0.3.1.0',
     'category': 'Inventory/Delivery',
     'summary': 'Ödemesi tamamlanmamış müşteri siparişlerinin sevkiyatını engeller',
     'author': 'Zuhal Müzik',
