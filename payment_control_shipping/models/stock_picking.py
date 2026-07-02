@@ -25,11 +25,16 @@ class StockPicking(models.Model):
         return super().button_validate()
 
     def _check_payment_before_delivery(self):
+        is_approver = self.env.user.has_group(APPROVER_GROUP)
         for picking in self:
             if picking.picking_type_id.code != 'outgoing':
                 continue
             sale_order = picking.sale_id
             if not sale_order:
+                continue
+            # Sevkiyat Onaycısı grubundaki kullanıcı ödeme kontrolünü
+            # doğrudan geçebilir; onay istemesine gerek yoktur.
+            if is_approver:
                 continue
             if sale_order.payment_control_approval_state == 'approved':
                 continue
