@@ -24,7 +24,40 @@ class StockPicking(models.Model):
         self._check_payment_before_delivery()
         return super().button_validate()
 
+    @api.model
+    def _payment_control_enabled(self):
+        """Kriz modu: Ayarlar'dan kapatılırsa kontrol tamamen devre dışı."""
+        param = self.env['ir.config_parameter'].sudo().get_param(
+            'payment_control_shipping.enabled')
+        if not param:
+            return True
+        return str(param).strip().lower() not in ('false', '0')
+
+    def _payment_control_block_reason(self, sale_order):
+        """Sevkiyatın engellenme sebebini döndürür; engel yoksa boş döner."""
+        invoices = sale_order.invoice_ids.filtered(
+            lambda m: m.move_type == 'out_invoice' and m.state == 'posted'
+        )
+        if not invoices:
+            return _(
+                "%s siparişi için henüz fatura kesilmemiş / ödeme alınmamış. "
+                "Ödeme alınmadan sevkiyat doğrulanamaz.\n\n"
+                "Onay gerekiyorsa 'Ödeme Onayı İste' butonunu kullanın."
+            ) % sale_order.name
+        unpaid = invoices.filtered(
+            lambda m: m.payment_state not in ('paid', 'in_payment')
+        )
+        if unpaid:
+            return _(
+                "%s siparişinin ödemesi tam olarak tamamlanmamış. "
+                "Sevkiyat doğrulanamaz.\n\nBekleyen fatura(lar): %s\n\n"
+                "Onay gerekiyorsa 'Ödeme Onayı İste' butonunu kullanın."
+            ) % (sale_order.name, ', '.join(unpaid.mapped('name')))
+        return False
+
     def _check_payment_before_delivery(self):
+        if not self._payment_control_enabled():
+            return
         is_approver = self.env.user.has_group(APPROVER_GROUP)
         for picking in self:
             if picking.picking_type_id.code != 'outgoing':
@@ -32,30 +65,19 @@ class StockPicking(models.Model):
             sale_order = picking.sale_id
             if not sale_order:
                 continue
-            # Sevkiyat Onaycısı grubundaki kullanıcı ödeme kontrolünü
-            # doğrudan geçebilir; onay istemesine gerek yoktur.
-            if is_approver:
-                continue
             if sale_order.payment_control_approval_state == 'approved':
                 continue
-            invoices = sale_order.invoice_ids.filtered(
-                lambda m: m.move_type == 'out_invoice' and m.state == 'posted'
-            )
-            if not invoices:
-                raise UserError(_(
-                    "%s siparişi için henüz fatura kesilmemiş / ödeme "
-                    "alınmamış. Ödeme alınmadan sevkiyat doğrulanamaz.\n\n"
-                    "Onay gerekiyorsa 'Ödeme Onayı İste' butonunu kullanın."
-                ) % sale_order.name)
-            unpaid = invoices.filtered(
-                lambda m: m.payment_state not in ('paid', 'in_payment')
-            )
-            if unpaid:
-                raise UserError(_(
-                    "%s siparişinin ödemesi tam olarak tamamlanmamış. "
-                    "Sevkiyat doğrulanamaz.\n\nBekleyen fatura(lar): %s\n\n"
-                    "Onay gerekiyorsa 'Ödeme Onayı İste' butonunu kullanın."
-                ) % (sale_order.name, ', '.join(unpaid.mapped('name'))))
+            reason = picking._payment_control_block_reason(sale_order)
+            if not reason:
+                continue
+            if is_approver:
+                # Onaycı doğrudan geçebilir; ama denetim için iz bırakılır.
+                picking.message_post(body=_(
+                    "Ödeme/fatura tamamlanmadan, onaycı yetkisiyle sevkiyat "
+                    "doğrulandı. Doğrulayan: %s"
+                ) % self.env.user.name)
+                continue
+            raise UserError(reason)
 
     def action_request_payment_approval(self):
         self.ensure_one()
