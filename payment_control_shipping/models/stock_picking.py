@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 APPROVER_GROUP = 'payment_control_shipping.group_shipping_approver'
 
@@ -22,7 +26,14 @@ class StockPicking(models.Model):
 
     def button_validate(self):
         self._check_payment_before_delivery()
-        return super().button_validate()
+        try:
+            return super().button_validate()
+        except Exception:
+            # TEŞHİS: gizlenen gerçek hatayı tam traceback ile log'a düşür.
+            _logger.exception(
+                "payment_control_shipping TEŞHİS: super().button_validate() "
+                "içinde hata (pickings=%s)", self.ids)
+            raise
 
     def _check_payment_before_delivery(self):
         is_approver = self.env.user.has_group(APPROVER_GROUP)
