@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_payment_control" model="ir.ui.view">
+        <field name="name">sale.order.form.payment.control</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_request_payment_approval" type="object"
+                        string="Ödeme Onayı İste"
+                        attrs="{'invisible': [('payment_control_approval_state', 'in', ('requested', 'approved'))]}"/>
+                <button name="action_approve_payment_control" type="object"
+                        string="Ödeme Onayını Ver" class="btn-primary"
+                        attrs="{'invisible': ['|', ('payment_control_is_approver', '=', False), ('payment_control_approval_state', '=', 'approved')]}"/>
+                <button name="action_reset_payment_approval" type="object"
+                        string="Onayı Sıfırla"
+                        attrs="{'invisible': ['|', ('payment_control_is_approver', '=', False), ('payment_control_approval_state', '!=', 'approved')]}"/>
+                <field name="payment_control_is_approver" invisible="1"/>
+                <field name="payment_control_approval_state" widget="badge"
+                       attrs="{'invisible': [('payment_control_approval_state', '=', 'none')]}"
+                       decoration-warning="payment_control_approval_state == 'requested'"
+                       decoration-success="payment_control_approval_state == 'approved'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
