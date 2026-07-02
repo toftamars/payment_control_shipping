@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
                 <button name="action_request_payment_approval" type="object"
-                        string="Ödeme Onayı İste"
+                        string="Ödemesiz Sevkiyat Onayı İste"
                         attrs="{'invisible': ['|', '|', ('sale_id', '=', False), ('payment_control_approval_state', 'in', ('requested', 'approved')), ('state', 'in', ('done', 'cancel'))]}"/>
                 <button name="action_open_payment_decision" type="object"
                         string="Ödeme Onayı Kararı" class="btn-primary"

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_payment_control_toggle_wizard_form" model="ir.ui.view">
+        <field name="name">payment.control.toggle.wizard.form</field>
+        <field name="model">payment.control.toggle.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Ödeme Kontrolü (Aç/Kapat)">
+                <group>
+                    <field name="enabled"/>
+                </group>
+                <div class="text-muted">
+                    Kapatıldığında ödeme/fatura kontrolü tüm sevkiyatlarda
+                    geçici olarak devre dışı kalır (kriz modu). Onay mekanizması
+                    ve engelleme çalışmaz; tekrar açınca kaldığı yerden devam
+                    eder.
+                </div>
+                <footer>
+                    <button name="action_apply" type="object" string="Uygula"
+                            class="btn-primary"
+                            confirm="Ödeme kontrolü ayarını değiştirmek üzeresiniz. Emin misiniz?"/>
+                    <button string="İptal" special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_payment_control_toggle" model="ir.actions.act_window">
+        <field name="name">Ödeme Kontrolü (Aç/Kapat)</field>
+        <field name="res_model">payment.control.toggle.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_payment_control_toggle"
+              name="Ödeme Kontrolü (Aç/Kapat)"
+              parent="stock.menu_stock_root"
+              action="action_payment_control_toggle"
+              groups="base.group_system"
+              sequence="200"/>
+</odoo>

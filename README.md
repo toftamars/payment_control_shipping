@@ -81,7 +81,7 @@ yetkisine sahip kullanıcılar görür.
 
 1. Ödemesi/faturası tamamlanmamış bir sevkiyat doğrulanmak istendiğinde işlem
    engellenir ve açıklayıcı bir uyarı gösterilir.
-2. **Ödeme Onayı İste** ile onay istenecek kişiler seçilir; seçilenlere
+2. **Ödemesiz Sevkiyat Onayı İste** ile onay istenecek kişiler seçilir; seçilenlere
    bağlantılı e-posta + SMS + aktivite gider.
 3. Onaycı, bağlantıdan siparişe gidip **Ödeme Onayı Kararı** ile zorunlu açıklama
    girerek **Onaylar** veya **Reddeder**.

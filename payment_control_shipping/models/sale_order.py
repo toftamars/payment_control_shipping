@@ -44,7 +44,7 @@ class SaleOrder(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Ödeme Onayı İste'),
+            'name': _('Ödemesiz Sevkiyat Onayı İste'),
             'res_model': 'payment.control.approval.wizard',
             'view_mode': 'form',
             'target': 'new',

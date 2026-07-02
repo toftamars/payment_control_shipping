@@ -4,7 +4,7 @@
         <field name="name">payment.control.approval.wizard.form</field>
         <field name="model">payment.control.approval.wizard</field>
         <field name="arch" type="xml">
-            <form string="Ödeme Onayı İste">
+            <form string="Ödemesiz Sevkiyat Onayı İste">
                 <group>
                     <field name="order_id"/>
                     <field name="available_approver_ids" invisible="1"/>

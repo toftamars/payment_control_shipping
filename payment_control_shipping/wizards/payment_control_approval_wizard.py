@@ -7,7 +7,7 @@ APPROVER_GROUP = 'payment_control_shipping.group_shipping_approver'
 
 class PaymentControlApprovalWizard(models.TransientModel):
     _name = 'payment.control.approval.wizard'
-    _description = 'Ödeme Onayı İste'
+    _description = 'Ödemesiz Sevkiyat Onayı İste'
 
     order_id = fields.Many2one(
         'sale.order', string='Sipariş', required=True, readonly=True)

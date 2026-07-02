@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Ödeme Kontrollü Sevkiyat',
-    'version': '15.0.3.0.0',
+    'version': '15.0.3.1.0',
     'category': 'Inventory/Delivery',
     'summary': 'Ödemesi tamamlanmamış müşteri siparişlerinin sevkiyatını engeller',
     'author': 'Zuhal Müzik',
@@ -12,9 +12,9 @@
         'data/mail_template_payment_approval.xml',
         'wizards/payment_control_approval_wizard_views.xml',
         'wizards/payment_control_decision_wizard_views.xml',
+        'wizards/payment_control_toggle_wizard_views.xml',
         'views/sale_order_views.xml',
         'views/stock_picking_views.xml',
-        'views/res_config_settings_views.xml',
     ],
     'installable': True,
     'application': False,

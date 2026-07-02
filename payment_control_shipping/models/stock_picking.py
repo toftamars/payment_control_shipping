@@ -42,7 +42,7 @@ class StockPicking(models.Model):
             return _(
                 "%s siparişi için henüz fatura kesilmemiş / ödeme alınmamış. "
                 "Ödeme alınmadan sevkiyat doğrulanamaz.\n\n"
-                "Onay gerekiyorsa 'Ödeme Onayı İste' butonunu kullanın."
+                "Onay gerekiyorsa 'Ödemesiz Sevkiyat Onayı İste' butonunu kullanın."
             ) % sale_order.name
         unpaid = invoices.filtered(
             lambda m: m.payment_state not in ('paid', 'in_payment')
@@ -51,7 +51,7 @@ class StockPicking(models.Model):
             return _(
                 "%s siparişinin ödemesi tam olarak tamamlanmamış. "
                 "Sevkiyat doğrulanamaz.\n\nBekleyen fatura(lar): %s\n\n"
-                "Onay gerekiyorsa 'Ödeme Onayı İste' butonunu kullanın."
+                "Onay gerekiyorsa 'Ödemesiz Sevkiyat Onayı İste' butonunu kullanın."
             ) % (sale_order.name, ', '.join(unpaid.mapped('name')))
         return False
 
