@@ -37,44 +37,54 @@ class SaleOrder(models.Model):
             order.payment_control_is_approver = is_approver
 
     def action_request_payment_approval(self):
-        approver_group = self.env.ref(APPROVER_GROUP, raise_if_not_found=False)
-        approvers = approver_group.users if approver_group else self.env['res.users']
+        """Onaycı seçtiren wizard'ı açar; gönderim seçilen kişilere yapılır."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Ödeme Onayı İste'),
+            'res_model': 'payment.control.approval.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_order_id': self.id},
+        }
+
+    def _process_approval_request(self, approvers):
+        """Seçilen onaycılara onay talebini iletir (aktivite + mail + SMS)."""
+        self.ensure_one()
+        if not approvers or self.payment_control_approval_state == 'approved':
+            return
         template = self.env.ref(
             'payment_control_shipping.mail_template_payment_approval_request',
             raise_if_not_found=False)
-        for order in self:
-            if order.payment_control_approval_state == 'approved':
-                continue
-            order.payment_control_approval_state = 'requested'
-            body = _(
-                "%s siparişi için ödeme kontrolü onayı talep edildi. "
-                "Talep eden: %s"
-            ) % (order.name, self.env.user.name)
-            # İç bildirim / yapılacak (aktivite)
-            for user in approvers:
-                order.activity_schedule(
-                    'mail.mail_activity_data_todo',
-                    user_id=user.id,
-                    summary=_("Ödeme kontrolü onayı bekleniyor"),
-                    note=body,
-                )
-            # Denetim izi (chatter notu)
-            order.message_post(body=body, subtype_xmlid='mail.mt_note')
-            # Gerçek e-posta: kullanıcının bildirim tercihinden bağımsız
-            # olarak onaycıların e-posta adresine gönderilir.
-            partner_ids = approvers.mapped('partner_id').filtered('email').ids
-            if template and partner_ids:
-                template.send_mail(
-                    order.id,
-                    force_send=True,
-                    email_values={'recipient_ids': [(6, 0, partner_ids)]},
-                )
-            # SMS: onaycıların cep numarasına kısa bilgilendirme
-            sms_body = _(
-                "%s siparişi için ödeme onayı bekleniyor. Talep eden: %s"
-            ) % (order.name, self.env.user.name)
-            order._payment_control_send_sms(approvers, sms_body)
-        return True
+        self.payment_control_approval_state = 'requested'
+        body = _(
+            "%s siparişi için ödeme kontrolü onayı talep edildi. "
+            "Talep eden: %s"
+        ) % (self.name, self.env.user.name)
+        # İç bildirim / yapılacak (aktivite)
+        for user in approvers:
+            self.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=user.id,
+                summary=_("Ödeme kontrolü onayı bekleniyor"),
+                note=body,
+            )
+        # Denetim izi (chatter notu)
+        self.message_post(body=body, subtype_xmlid='mail.mt_note')
+        # Gerçek e-posta: kullanıcının bildirim tercihinden bağımsız
+        # olarak seçilen onaycıların e-posta adresine gönderilir.
+        partner_ids = approvers.mapped('partner_id').filtered('email').ids
+        if template and partner_ids:
+            template.send_mail(
+                self.id,
+                force_send=True,
+                email_values={'recipient_ids': [(6, 0, partner_ids)]},
+            )
+        # SMS: seçilen onaycıların cep numarasına kısa bilgilendirme
+        sms_body = _(
+            "%s siparişi için ödeme onayı bekleniyor. Talep eden: %s"
+        ) % (self.name, self.env.user.name)
+        self._payment_control_send_sms(approvers, sms_body)
 
     def _payment_control_send_sms(self, approvers, body):
         """Onaycıların cep numarasına SMS gönderir. Gateway/numara yoksa
