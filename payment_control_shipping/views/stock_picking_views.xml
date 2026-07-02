@@ -12,12 +12,16 @@
                 <button name="action_approve_payment_control" type="object"
                         string="Ödeme Onayını Ver" class="btn-primary"
                         attrs="{'invisible': ['|', '|', '|', ('payment_control_is_approver', '=', False), ('sale_id', '=', False), ('payment_control_approval_state', '=', 'approved'), ('state', 'in', ('done', 'cancel'))]}"/>
+                <button name="action_reject_payment_control" type="object"
+                        string="Reddet"
+                        attrs="{'invisible': ['|', '|', ('payment_control_is_approver', '=', False), ('sale_id', '=', False), ('payment_control_approval_state', '!=', 'requested')]}"/>
                 <field name="sale_id" invisible="1"/>
                 <field name="payment_control_is_approver" invisible="1"/>
                 <field name="payment_control_approval_state" widget="badge"
                        attrs="{'invisible': ['|', ('sale_id', '=', False), ('payment_control_approval_state', 'in', (False, 'none'))]}"
                        decoration-warning="payment_control_approval_state == 'requested'"
-                       decoration-success="payment_control_approval_state == 'approved'"/>
+                       decoration-success="payment_control_approval_state == 'approved'"
+                       decoration-danger="payment_control_approval_state == 'rejected'"/>
             </xpath>
         </field>
     </record>

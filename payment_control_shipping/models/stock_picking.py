@@ -64,7 +64,13 @@ class StockPicking(models.Model):
         return self.sale_id.action_request_payment_approval()
 
     def action_approve_payment_control(self):
-        orders = self.mapped('sale_id')
-        if orders:
-            orders.action_approve_payment_control()
-        return True
+        self.ensure_one()
+        if not self.sale_id:
+            raise UserError(_("Bu transfere bağlı bir satış siparişi yok."))
+        return self.sale_id.action_approve_payment_control()
+
+    def action_reject_payment_control(self):
+        self.ensure_one()
+        if not self.sale_id:
+            raise UserError(_("Bu transfere bağlı bir satış siparişi yok."))
+        return self.sale_id.action_reject_payment_control()

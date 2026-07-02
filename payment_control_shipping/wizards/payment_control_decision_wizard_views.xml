@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_payment_control_decision_wizard_form" model="ir.ui.view">
+        <field name="name">payment.control.decision.wizard.form</field>
+        <field name="model">payment.control.decision.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Ödeme Onay Kararı">
+                <group>
+                    <field name="order_id"/>
+                    <field name="decision"/>
+                    <field name="note" placeholder="Onay/red gerekçesini yazın (zorunlu)..."/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="Kaydet" class="btn-primary"/>
+                    <button string="İptal" special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

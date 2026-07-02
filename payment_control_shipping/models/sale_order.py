@@ -17,6 +17,7 @@ class SaleOrder(models.Model):
             ('none', 'Onay Yok'),
             ('requested', 'Onay Bekliyor'),
             ('approved', 'Onaylandı'),
+            ('rejected', 'Reddedildi'),
         ],
         string='Ödeme Onay Durumu',
         default='none',
@@ -24,9 +25,11 @@ class SaleOrder(models.Model):
         tracking=True,
     )
     payment_control_approved_by = fields.Many2one(
-        'res.users', string='Onaylayan', copy=False, readonly=True)
+        'res.users', string='Onaylayan/Reddeden', copy=False, readonly=True)
     payment_control_approved_date = fields.Datetime(
-        string='Onay Tarihi', copy=False, readonly=True)
+        string='Karar Tarihi', copy=False, readonly=True)
+    payment_control_approval_note = fields.Text(
+        string='Onay/Red Açıklaması', copy=False, readonly=True)
     payment_control_is_approver = fields.Boolean(
         string='Onaycı mı?', compute='_compute_payment_control_is_approver')
 
@@ -80,11 +83,17 @@ class SaleOrder(models.Model):
                 force_send=True,
                 email_values={'recipient_ids': [(6, 0, partner_ids)]},
             )
-        # SMS: seçilen onaycıların cep numarasına kısa bilgilendirme
+        # SMS: seçilen onaycıların cep numarasına kısa bilgilendirme + link
         sms_body = _(
-            "%s siparişi için ödeme onayı bekleniyor. Talep eden: %s"
-        ) % (self.name, self.env.user.name)
+            "%s siparişi için ödeme onayı bekleniyor. Talep eden: %s. Onay: %s"
+        ) % (self.name, self.env.user.name, self._payment_control_url())
         self._payment_control_send_sms(approvers, sms_body)
+
+    def _payment_control_url(self):
+        """Onaycıyı doğrudan siparişin (onay butonlu) formuna götüren link."""
+        self.ensure_one()
+        return "%s/web#id=%s&model=sale.order&view_type=form" % (
+            self.get_base_url(), self.id)
 
     def _payment_control_send_sms(self, approvers, body):
         """Onaycıların cep numarasına SMS gönderir. Gateway/numara yoksa
@@ -105,31 +114,73 @@ class SaleOrder(models.Model):
                     "payment_control_shipping: onay SMS gönderilemedi (%s)",
                     number)
 
-    def action_approve_payment_control(self):
+    def _ensure_approver(self):
         if not self.env.user.has_group(APPROVER_GROUP):
             raise UserError(_("Bu işlem için 'Sevkiyat Onaycısı' yetkiniz yok."))
-        for order in self:
-            order.write({
+
+    def _open_decision_wizard(self, decision):
+        self.ensure_one()
+        self._ensure_approver()
+        name = _("Ödeme Onayını Ver") if decision == 'approve' \
+            else _("Ödeme Onayını Reddet")
+        return {
+            'type': 'ir.actions.act_window',
+            'name': name,
+            'res_model': 'payment.control.decision.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_order_id': self.id,
+                'default_decision': decision,
+            },
+        }
+
+    def action_approve_payment_control(self):
+        return self._open_decision_wizard('approve')
+
+    def action_reject_payment_control(self):
+        return self._open_decision_wizard('reject')
+
+    def _apply_payment_decision(self, decision, note):
+        """Wizard'dan gelen kararı (onay/red) zorunlu açıklama ile uygular."""
+        self.ensure_one()
+        self._ensure_approver()
+        if not (note or '').strip():
+            raise UserError(_("Açıklama girmek zorunludur."))
+        if decision == 'approve':
+            self.write({
                 'payment_control_approval_state': 'approved',
                 'payment_control_approved_by': self.env.user.id,
                 'payment_control_approved_date': fields.Datetime.now(),
+                'payment_control_approval_note': note,
             })
-            order.activity_feedback(['mail.mail_activity_data_todo'])
-            order.message_post(
-                body=_("Ödeme kontrolü onaylandı. Onaylayan: %s")
-                % self.env.user.name)
+            self.activity_feedback(['mail.mail_activity_data_todo'])
+            self.message_post(body=_(
+                "Ödeme kontrolü ONAYLANDI.\nOnaylayan: %s\nAçıklama: %s"
+            ) % (self.env.user.name, note))
+        else:
+            self.write({
+                'payment_control_approval_state': 'rejected',
+                'payment_control_approved_by': self.env.user.id,
+                'payment_control_approved_date': fields.Datetime.now(),
+                'payment_control_approval_note': note,
+            })
+            self.activity_feedback(['mail.mail_activity_data_todo'])
+            self.message_post(body=_(
+                "Ödeme kontrolü REDDEDİLDİ.\nReddeden: %s\nAçıklama: %s"
+            ) % (self.env.user.name, note))
         return True
 
     def action_reset_payment_approval(self):
-        if not self.env.user.has_group(APPROVER_GROUP):
-            raise UserError(_("Bu işlem için 'Sevkiyat Onaycısı' yetkiniz yok."))
-        for order in self:
-            order.write({
-                'payment_control_approval_state': 'none',
-                'payment_control_approved_by': False,
-                'payment_control_approved_date': False,
-            })
-            order.message_post(
-                body=_("Ödeme kontrolü onayı sıfırlandı. İşlemi yapan: %s")
-                % self.env.user.name)
+        self.ensure_one()
+        self._ensure_approver()
+        self.write({
+            'payment_control_approval_state': 'none',
+            'payment_control_approved_by': False,
+            'payment_control_approved_date': False,
+            'payment_control_approval_note': False,
+        })
+        self.message_post(
+            body=_("Ödeme kontrolü onay durumu sıfırlandı. İşlemi yapan: %s")
+            % self.env.user.name)
         return True

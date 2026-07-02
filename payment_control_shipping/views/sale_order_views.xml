@@ -12,14 +12,26 @@
                 <button name="action_approve_payment_control" type="object"
                         string="Ödeme Onayını Ver" class="btn-primary"
                         attrs="{'invisible': ['|', ('payment_control_is_approver', '=', False), ('payment_control_approval_state', '=', 'approved')]}"/>
+                <button name="action_reject_payment_control" type="object"
+                        string="Reddet"
+                        attrs="{'invisible': ['|', ('payment_control_is_approver', '=', False), ('payment_control_approval_state', '!=', 'requested')]}"/>
                 <button name="action_reset_payment_approval" type="object"
-                        string="Onayı Sıfırla"
-                        attrs="{'invisible': ['|', ('payment_control_is_approver', '=', False), ('payment_control_approval_state', '!=', 'approved')]}"/>
+                        string="Onay Durumunu Sıfırla"
+                        attrs="{'invisible': ['|', ('payment_control_is_approver', '=', False), ('payment_control_approval_state', 'in', ('none', False))]}"/>
                 <field name="payment_control_is_approver" invisible="1"/>
                 <field name="payment_control_approval_state" widget="badge"
                        attrs="{'invisible': [('payment_control_approval_state', '=', 'none')]}"
                        decoration-warning="payment_control_approval_state == 'requested'"
-                       decoration-success="payment_control_approval_state == 'approved'"/>
+                       decoration-success="payment_control_approval_state == 'approved'"
+                       decoration-danger="payment_control_approval_state == 'rejected'"/>
+            </xpath>
+            <xpath expr="//notebook" position="before">
+                <group name="payment_control_approval_info"
+                       attrs="{'invisible': [('payment_control_approval_state', 'in', ('none', False))]}">
+                    <field name="payment_control_approved_by" readonly="1"/>
+                    <field name="payment_control_approved_date" readonly="1"/>
+                    <field name="payment_control_approval_note" readonly="1"/>
+                </group>
             </xpath>
         </field>
     </record>

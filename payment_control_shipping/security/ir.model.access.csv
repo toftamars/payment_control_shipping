@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_payment_control_approval_wizard,payment.control.approval.wizard,model_payment_control_approval_wizard,base.group_user,1,1,1,1
+access_payment_control_decision_wizard,payment.control.decision.wizard,model_payment_control_decision_wizard,base.group_user,1,1,1,1
