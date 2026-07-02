@@ -85,8 +85,11 @@ class SaleOrder(models.Model):
             )
         # SMS: seçilen onaycıların cep numarasına kısa bilgilendirme + link
         sms_body = _(
-            "%s siparişi için ödeme onayı bekleniyor. Talep eden: %s. Onay: %s"
-        ) % (self.name, self.env.user.name, self._payment_control_url())
+            "%s (%s - %s %s) icin odemesiz sevkiyat onayi bekleniyor. "
+            "Talep eden: %s. Onay: %s"
+        ) % (self.name, self.partner_id.name or '', self.amount_total,
+             self.currency_id.name or '', self.env.user.name,
+             self._payment_control_url())
         self._payment_control_send_sms(approvers, sms_body)
 
     def _payment_control_url(self):
