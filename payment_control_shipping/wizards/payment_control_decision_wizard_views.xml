@@ -11,9 +11,11 @@
                 </group>
                 <footer>
                     <button name="action_approve" type="object"
-                            string="Onayla" class="btn-primary"/>
+                            string="Onayla" class="btn-primary"
+                            confirm="Bu siparişin ödeme kontrolünü ONAYLAMAK üzeresiniz. Onaylandığında ödemesi tamamlanmamış sevkiyat doğrulanabilir. Emin misiniz?"/>
                     <button name="action_reject" type="object"
-                            string="Reddet" class="btn-danger"/>
+                            string="Reddet" class="btn-danger"
+                            confirm="Bu siparişin ödeme kontrolünü REDDETMEK üzeresiniz. Emin misiniz?"/>
                     <button string="İptal" special="cancel"
                             class="btn-secondary"/>
                 </footer>
