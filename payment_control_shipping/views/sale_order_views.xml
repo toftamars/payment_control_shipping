@@ -9,12 +9,9 @@
                 <button name="action_request_payment_approval" type="object"
                         string="Ödeme Onayı İste"
                         attrs="{'invisible': [('payment_control_approval_state', 'in', ('requested', 'approved'))]}"/>
-                <button name="action_approve_payment_control" type="object"
-                        string="Ödeme Onayını Ver" class="btn-primary"
+                <button name="action_open_payment_decision" type="object"
+                        string="Ödeme Onayı Kararı" class="btn-primary"
                         attrs="{'invisible': ['|', ('payment_control_is_approver', '=', False), ('payment_control_approval_state', '=', 'approved')]}"/>
-                <button name="action_reject_payment_control" type="object"
-                        string="Reddet"
-                        attrs="{'invisible': ['|', ('payment_control_is_approver', '=', False), ('payment_control_approval_state', '!=', 'requested')]}"/>
                 <button name="action_reset_payment_approval" type="object"
                         string="Onay Durumunu Sıfırla"
                         attrs="{'invisible': ['|', ('payment_control_is_approver', '=', False), ('payment_control_approval_state', 'in', ('none', False))]}"/>

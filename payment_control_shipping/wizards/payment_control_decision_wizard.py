@@ -8,12 +8,14 @@ class PaymentControlDecisionWizard(models.TransientModel):
 
     order_id = fields.Many2one(
         'sale.order', string='Sipariş', required=True, readonly=True)
-    decision = fields.Selection(
-        selection=[('approve', 'Onayla'), ('reject', 'Reddet')],
-        string='Karar', required=True, readonly=True)
     note = fields.Text(string='Açıklama', required=True)
 
-    def action_confirm(self):
+    def action_approve(self):
         self.ensure_one()
-        self.order_id._apply_payment_decision(self.decision, self.note)
+        self.order_id._apply_payment_decision('approve', self.note)
+        return {'type': 'ir.actions.act_window_close'}
+
+    def action_reject(self):
+        self.ensure_one()
+        self.order_id._apply_payment_decision('reject', self.note)
         return {'type': 'ir.actions.act_window_close'}

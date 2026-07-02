@@ -4,15 +4,16 @@
         <field name="name">payment.control.decision.wizard.form</field>
         <field name="model">payment.control.decision.wizard</field>
         <field name="arch" type="xml">
-            <form string="Ödeme Onay Kararı">
+            <form string="Ödeme Onayı Kararı">
                 <group>
                     <field name="order_id"/>
-                    <field name="decision"/>
                     <field name="note" placeholder="Onay/red gerekçesini yazın (zorunlu)..."/>
                 </group>
                 <footer>
-                    <button name="action_confirm" type="object"
-                            string="Kaydet" class="btn-primary"/>
+                    <button name="action_approve" type="object"
+                            string="Onayla" class="btn-primary"/>
+                    <button name="action_reject" type="object"
+                            string="Reddet" class="btn-danger"/>
                     <button string="İptal" special="cancel"
                             class="btn-secondary"/>
                 </footer>

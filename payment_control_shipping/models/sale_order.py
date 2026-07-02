@@ -118,28 +118,17 @@ class SaleOrder(models.Model):
         if not self.env.user.has_group(APPROVER_GROUP):
             raise UserError(_("Bu işlem için 'Sevkiyat Onaycısı' yetkiniz yok."))
 
-    def _open_decision_wizard(self, decision):
+    def action_open_payment_decision(self):
         self.ensure_one()
         self._ensure_approver()
-        name = _("Ödeme Onayını Ver") if decision == 'approve' \
-            else _("Ödeme Onayını Reddet")
         return {
             'type': 'ir.actions.act_window',
-            'name': name,
+            'name': _("Ödeme Onayı Kararı"),
             'res_model': 'payment.control.decision.wizard',
             'view_mode': 'form',
             'target': 'new',
-            'context': {
-                'default_order_id': self.id,
-                'default_decision': decision,
-            },
+            'context': {'default_order_id': self.id},
         }
-
-    def action_approve_payment_control(self):
-        return self._open_decision_wizard('approve')
-
-    def action_reject_payment_control(self):
-        return self._open_decision_wizard('reject')
 
     def _apply_payment_decision(self, decision, note):
         """Wizard'dan gelen kararı (onay/red) zorunlu açıklama ile uygular."""
