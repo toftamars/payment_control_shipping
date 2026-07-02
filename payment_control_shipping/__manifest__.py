@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Ödeme Kontrollü Sevkiyat',
-    'version': '15.0.2.4.0',
+    'version': '15.0.2.5.0',
     'category': 'Inventory/Delivery',
     'summary': 'Ödemesi tamamlanmamış müşteri siparişlerinin sevkiyatını engeller',
     'author': 'Zuhal Müzik',
-    'depends': ['stock', 'sale_stock', 'account', 'mail'],
+    'depends': ['stock', 'sale_stock', 'account', 'mail', 'sms'],
     'data': [
         'security/payment_control_groups.xml',
         'data/mail_template_payment_approval.xml',

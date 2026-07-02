@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 APPROVER_GROUP = 'payment_control_shipping.group_shipping_approver'
 
@@ -65,7 +69,31 @@ class SaleOrder(models.Model):
                     force_send=True,
                     email_values={'recipient_ids': [(6, 0, partner_ids)]},
                 )
+            # SMS: onaycıların cep numarasına kısa bilgilendirme
+            sms_body = _(
+                "%s siparişi için ödeme onayı bekleniyor. Talep eden: %s"
+            ) % (order.name, self.env.user.name)
+            order._payment_control_send_sms(approvers, sms_body)
         return True
+
+    def _payment_control_send_sms(self, approvers, body):
+        """Onaycıların cep numarasına SMS gönderir. Gateway/numara yoksa
+        akışı bozmadan sessizce geçer."""
+        Sms = self.env['sms.sms'].sudo()
+        for user in approvers:
+            number = user.partner_id.mobile or user.partner_id.phone
+            if not number:
+                continue
+            try:
+                Sms.create({
+                    'partner_id': user.partner_id.id,
+                    'number': number,
+                    'body': body,
+                }).send()
+            except Exception:
+                _logger.warning(
+                    "payment_control_shipping: onay SMS gönderilemedi (%s)",
+                    number)
 
     def action_approve_payment_control(self):
         if not self.env.user.has_group(APPROVER_GROUP):
