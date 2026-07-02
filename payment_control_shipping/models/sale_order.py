@@ -35,6 +35,9 @@ class SaleOrder(models.Model):
     def action_request_payment_approval(self):
         approver_group = self.env.ref(APPROVER_GROUP, raise_if_not_found=False)
         approvers = approver_group.users if approver_group else self.env['res.users']
+        template = self.env.ref(
+            'payment_control_shipping.mail_template_payment_approval_request',
+            raise_if_not_found=False)
         for order in self:
             if order.payment_control_approval_state == 'approved':
                 continue
@@ -43,6 +46,7 @@ class SaleOrder(models.Model):
                 "%s siparişi için ödeme kontrolü onayı talep edildi. "
                 "Talep eden: %s"
             ) % (order.name, self.env.user.name)
+            # İç bildirim / yapılacak (aktivite)
             for user in approvers:
                 order.activity_schedule(
                     'mail.mail_activity_data_todo',
@@ -50,12 +54,16 @@ class SaleOrder(models.Model):
                     summary=_("Ödeme kontrolü onayı bekleniyor"),
                     note=body,
                 )
-            partner_ids = approvers.mapped('partner_id').ids
-            if partner_ids:
-                order.message_post(
-                    body=body,
-                    partner_ids=partner_ids,
-                    subtype_xmlid='mail.mt_comment',
+            # Denetim izi (chatter notu)
+            order.message_post(body=body, subtype_xmlid='mail.mt_note')
+            # Gerçek e-posta: kullanıcının bildirim tercihinden bağımsız
+            # olarak onaycıların e-posta adresine gönderilir.
+            partner_ids = approvers.mapped('partner_id').filtered('email').ids
+            if template and partner_ids:
+                template.send_mail(
+                    order.id,
+                    force_send=True,
+                    email_values={'recipient_ids': [(6, 0, partner_ids)]},
                 )
         return True
 

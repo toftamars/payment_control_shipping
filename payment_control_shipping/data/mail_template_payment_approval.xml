@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mail_template_payment_approval_request" model="mail.template">
+        <field name="name">Ödeme Kontrolü Onay Talebi</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="subject">Ödeme Onayı Bekleniyor: {{ object.name }}</field>
+        <field name="email_from">{{ (object.company_id.email or user.email_formatted) }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="body_html" type="html">
+            <div style="margin:0px;padding:0px;font-size:14px;">
+                <p>Merhaba,</p>
+                <p>
+                    <strong><t t-out="object.name or ''"/></strong>
+                    numaralı sipariş için ödeme kontrolü onayı talep edildi.
+                    Sevkiyatın doğrulanabilmesi için onayınız bekleniyor.
+                </p>
+                <ul>
+                    <li>Müşteri: <t t-out="object.partner_id.name or ''"/></li>
+                    <li>Tutar: <t t-out="object.amount_total or ''"/> <t t-out="object.currency_id.name or ''"/></li>
+                    <li>Talep eden: <t t-out="object.env.user.name or ''"/></li>
+                </ul>
+                <p>
+                    Lütfen Odoo üzerinden ilgili siparişi/sevkiyatı inceleyip
+                    "Ödeme Onayını Ver" ile onaylayın.
+                </p>
+            </div>
+        </field>
+    </record>
+</odoo>
